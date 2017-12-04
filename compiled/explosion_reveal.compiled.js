@@ -36,51 +36,86 @@ var Explosion_Reveal = function () {
 	}, {
 		key: "ready",
 		value: function ready() {
+			var _this = this;
+
 			var $content = $("<div class='the-gifts'></div>");
-			var total = 0;
+			var has_unopened = false;
 
-			for (var i = 0; i < this.settings.gifts.length; ++i) {
-				if (!localStorage.getItem("exp_gift_" + this.settings.gifts[i].unique_key)) {
-					$content.append("<div><img src='" + this.settings.gifts[i].before_image + "' data-after-image='" + this.settings.gifts[i].after_image + "' data-key='" + this.settings.gifts[i].unique_key + "' /><div></div></div>");
+			var _loop = function _loop(i) {
+				var key = _this.settings.gifts[i].unique_key;
+				var opened = localStorage.getItem("exp_gift_" + key) ? true : false;
+				var img = opened ? _this.settings.gifts[i].after_image : _this.settings.gifts[i].before_image;
+				var data = !opened ? _this.settings.gifts[i].after_image : "";
+				var can_click = _this.settings.gifts[i].url_to_full_size.length > 0 ? 1 : 0;
+				var $gift = $("<div><img src='" + img + "' data-can-click='" + can_click + "' data-after-image='" + data + "' data-key='" + key + "' /><div class='click-me-overlay'>Click To View</div><div></div></div>");
 
-					total++;
+				if (img) {
+					var preload = new Image();
+
+					preload.src = img;
 				}
-			}
 
-			if (!total) {
-				return;
-			}
-
-			$content.find("img").on("click", function (e) {
-
-				var $img = $(this);
-				var $explosion = $img.parent().find("div");
-
-				$explosion.css({
-
-					top: $img.height() / 2 - 55 + "px",
-					left: $img.width() / 2 - 55 + "px"
-
+				$gift.find(".click-me-overlay").on("click", function () {
+					window.open(_this.settings.gifts[i].url_to_full_size);
 				});
 
-				$explosion.css("background-image", "url('" + Explosion_Reveal.explosion_spritesheet + "')");
-				$explosion.addClass("image-explosion");
+				if (opened && can_click) {
+					$gift.find(".click-me-overlay").show();
+				}
 
-				$img.animate({ opacity: 0.01, duration: 1.2 }, {
+				$content.append($gift);
 
-					complete: function complete() {
+				if (!opened) {
+					has_unopened = true;
+				}
+			};
 
-						$img.attr("src", $img.attr("data-after-image"));
-						$img.animate({ opacity: 1 });
-						$img.off("click");
+			for (var i = 0; i < this.settings.gifts.length; ++i) {
+				_loop(i);
+			}
 
-						setTimeout($explosion.remove, 750);
+			if (has_unopened) {
+				$content.find("img").on("click", function () {
+					var $img = $(this);
 
-						localStorage.setItem("exp_gift_" + $img.attr("data-key"), 1);
+					if ($img.attr("data-after-image").length == 0) {
+						return;
 					}
 
-				}).delay(0.3);
-			});
+					var $explosion = $img.parent().find("div:last");
+
+					$explosion.css({
+
+						top: $img.height() / 2 - 55 + "px",
+						left: $img.width() / 2 - 55 + "px"
+
+					});
+
+					$explosion.css("background-image", "url('" + Explosion_Reveal.explosion_spritesheet + "')");
+					$explosion.addClass("image-explosion");
+
+					$img.animate({ opacity: 0.01, duration: 1.2 }, {
+
+						complete: function complete() {
+
+							$img.attr("src", $img.attr("data-after-image"));
+							$img.animate({ opacity: 1 });
+							$img.off("click");
+
+							setTimeout(function () {
+								$explosion.remove();
+
+								if ($img.attr("data-can-click") == "1") {
+									$img.parent().find(".click-me-overlay").fadeIn("slow").delay(100);
+								}
+							}, 750);
+
+							localStorage.setItem("exp_gift_" + $img.attr("data-key"), 1);
+						}
+
+					}).delay(100);
+				});
+			}
 
 			this.container({ title: "Gifts", content: $content }).prependTo("#content");
 		}

@@ -24,50 +24,79 @@ class Explosion_Reveal {
 
 	static ready(){
 		let $content = $("<div class='the-gifts'></div>");
-		let total = 0;
+		let has_unopened = false;
 
 		for(let i = 0; i < this.settings.gifts.length; ++ i){
-			if(!localStorage.getItem("exp_gift_" + this.settings.gifts[i].unique_key)){
-				$content.append("<div><img src='" + this.settings.gifts[i].before_image + "' data-after-image='" + this.settings.gifts[i].after_image + "' data-key='" + this.settings.gifts[i].unique_key + "' /><div></div></div>");
+			let key = this.settings.gifts[i].unique_key;
+			let opened = (localStorage.getItem("exp_gift_" + key))? true : false;
+			let img = (opened)? this.settings.gifts[i].after_image : this.settings.gifts[i].before_image;
+			let data = (!opened)? this.settings.gifts[i].after_image : "";
+			let can_click = (this.settings.gifts[i].url_to_full_size.length > 0)? 1 : 0;
+			let $gift = $("<div><img src='" + img + "' data-can-click='" + can_click + "' data-after-image='" + data + "' data-key='" + key + "' /><div class='click-me-overlay'>Click To View</div><div></div></div>");
 
-				total ++;
+			if(img){
+				let preload = new Image();
+
+				preload.src = img;
+			}
+
+			$gift.find(".click-me-overlay").on("click", () => {
+				window.open(this.settings.gifts[i].url_to_full_size);
+			});
+
+			if(opened && can_click){
+				$gift.find(".click-me-overlay").show();
+			}
+
+			$content.append($gift);
+
+			if(!opened){
+				has_unopened = true;
 			}
 		}
 
-		if(!total){
-			return;
-		}
+		if(has_unopened){
+			$content.find("img").on("click", function(){
+				let $img = $(this);
 
-		$content.find("img").on("click", function(e){
-
-			let $img = $(this);
-			let $explosion = $img.parent().find("div");
-
-			$explosion.css({
-
-				top: (($img.height() / 2) - 55) + "px",
-				left: (($img.width() / 2) - 55) + "px"
-
-			});
-
-			$explosion.css("background-image", "url('" + Explosion_Reveal.explosion_spritesheet + "')");
-			$explosion.addClass("image-explosion");
-
-			$img.animate({opacity: 0.01, duration: 1.2}, {
-
-				complete: () => {
-
-					$img.attr("src", $img.attr("data-after-image"));
-					$img.animate({opacity: 1});
-					$img.off("click");
-
-					setTimeout($explosion.remove, 750);
-
-					localStorage.setItem("exp_gift_" + $img.attr("data-key"), 1);
+				if($img.attr("data-after-image").length == 0){
+					return;
 				}
 
-			}).delay(0.3);
-		});
+				let $explosion = $img.parent().find("div:last");
+
+				$explosion.css({
+
+					top: (($img.height() / 2) - 55) + "px",
+					left: (($img.width() / 2) - 55) + "px"
+
+				});
+
+				$explosion.css("background-image", "url('" + Explosion_Reveal.explosion_spritesheet + "')");
+				$explosion.addClass("image-explosion");
+
+				$img.animate({opacity: 0.01, duration: 1.2}, {
+
+					complete: () => {
+
+						$img.attr("src", $img.attr("data-after-image"));
+						$img.animate({opacity: 1});
+						$img.off("click");
+
+						setTimeout(function(){
+							$explosion.remove();
+
+							if($img.attr("data-can-click") == "1"){
+								$img.parent().find(".click-me-overlay").fadeIn("slow").delay(100);
+							}
+						}, 750);
+
+						localStorage.setItem("exp_gift_" + $img.attr("data-key"), 1);
+					}
+
+				}).delay(100);
+			});
+		}
 
 		this.container({title: "Gifts", content: $content}).prependTo("#content");
 	}
