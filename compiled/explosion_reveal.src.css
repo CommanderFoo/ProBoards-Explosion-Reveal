@@ -1,0 +1,68 @@
+.click-me-overlay {
+
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 20px;
+	padding: 2px;
+	text-align: center;
+	background-color: black;
+	opacity: 0.75;
+	cursor: pointer;
+	line-height: 20px;
+	color: white;
+	vertical-align: middle;
+	display: none;
+
+}
+
+.click-me-overlay:hover {
+
+	opacity: 0.9;
+
+}
+
+.the-gifts {
+
+	display: flex;
+	position: relative;
+	flex-wrap: wrap;
+
+}
+
+.the-gifts > div, .the-gifts img {
+
+	position: relative;
+	cursor: pointer;
+
+}
+
+.the-gifts > div {
+
+	margin-right: 10px;
+
+}
+
+.image-explosion {
+
+	width: 110px;
+	height: 110px;
+	background-position: top center;
+	animation: play 1.5s steps(89) 1;
+	animation-fill-mode: forwards;
+	position: absolute;
+	transform: scale(1.5);
+	z-index: 1000;
+
+}
+
+@keyframes play {
+
+	100% {
+
+		background-position: 0px -9790px;
+
+	}
+
+}

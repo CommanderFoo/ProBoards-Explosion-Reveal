@@ -42,6 +42,10 @@ var Explosion_Reveal = function () {
 			var has_unopened = false;
 
 			var _loop = function _loop(i) {
+				if (!_this.can_open(_this.settings.gifts[i].date)) {
+					return "continue";
+				}
+
 				var key = _this.settings.gifts[i].unique_key;
 				var opened = localStorage.getItem("exp_gift_" + key) ? true : false;
 				var img = opened ? _this.settings.gifts[i].after_image : _this.settings.gifts[i].before_image;
@@ -71,7 +75,9 @@ var Explosion_Reveal = function () {
 			};
 
 			for (var i = 0; i < this.settings.gifts.length; ++i) {
-				_loop(i);
+				var _ret = _loop(i);
+
+				if (_ret === "continue") continue;
 			}
 
 			if (has_unopened) {
@@ -140,6 +146,28 @@ var Explosion_Reveal = function () {
 			$html.find(".content").append(content);
 
 			return $html;
+		}
+	}, {
+		key: "can_open",
+		value: function can_open() {
+			var date_str = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+
+			if (!date_str.length) {
+				return true;
+			}
+
+			var date = new Date(date_str);
+
+			if (date) {
+				var ts = date.getTime();
+				var now = +new Date();
+
+				if (now >= ts) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}]);
 

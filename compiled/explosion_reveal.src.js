@@ -27,6 +27,10 @@ class Explosion_Reveal {
 		let has_unopened = false;
 
 		for(let i = 0; i < this.settings.gifts.length; ++ i){
+			if(!this.can_open(this.settings.gifts[i].date)){
+				continue;
+			}
+
 			let key = this.settings.gifts[i].unique_key;
 			let opened = (localStorage.getItem("exp_gift_" + key))? true : false;
 			let img = (opened)? this.settings.gifts[i].after_image : this.settings.gifts[i].before_image;
@@ -114,6 +118,25 @@ class Explosion_Reveal {
 		$html.find(".content").append(content);
 
 		return $html;
+	}
+
+	static can_open(date_str = ""){
+		if(!date_str.length){
+			return true;
+		}
+
+		let date = new Date(date_str);
+
+		if(date){
+			let ts = date.getTime();
+			let now = (+ new Date());
+
+			if(now >= ts){
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }
